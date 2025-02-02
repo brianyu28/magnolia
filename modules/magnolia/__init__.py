@@ -20,6 +20,7 @@ __all__ = [
 
 
 from .animation import *
+from .animation.util import *
 from .animation.visibility import *
 
 from .objects import *
@@ -36,5 +37,6 @@ from .scene.camera import *
 from .scene.collection import *
 from .scene.context import *
 from .scene.output import *
+from .scene.setup import *
 
 from . import slides

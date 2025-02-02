@@ -1,3 +1,4 @@
-__all__ = ["visibility"]
+__all__ = ["util", "visibility"]
 
+from .util import *
 from .visibility import *

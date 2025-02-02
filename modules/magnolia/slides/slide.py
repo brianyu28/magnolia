@@ -12,23 +12,27 @@ from .position import scale_size, set_slide_dimensions
 
 
 def create_slide(
+    scene: bpy.types.Scene | None = None,
     color: Color = (255, 255, 255),
     width: int = 3840,
     height: int = 2160,
-    framerate: int = 60,
+    framerate: int = 30,
 ):
     """
     Sets up a Magnolia slide in Blender.
 
     Optional arguments:
 
+    - `scene`: The scene to add the slide to. Defaults to the current scene.
     - `color`: The background color of the slide. Defaults to white.
     - `framerate`: The framerate of the slide. Defaults to 60.
     """
+    if scene is None:
+        scene = bpy.context.scene
     coll = create_collection("Production")
 
     # Set color management settings
-    bpy.context.scene.view_settings.view_transform = "Standard"  # pyright: ignore
+    scene.view_settings.view_transform = "Standard"  # pyright: ignore
 
     set_slide_dimensions(width, height)
 
@@ -63,9 +67,15 @@ def create_slide(
     # TODO: Figure out how this needs to scale for different widths, heights
     camera_data.ortho_scale = 38.3
 
+    # Ensure scene world exists
+    if scene.world is None:
+        world = bpy.data.worlds.new("World")
+        scene.world = world
+        scene.world.use_nodes = True
+
     # Set world surface background color to black
-    world_bg = bpy.context.scene.world.node_tree.nodes["Background"]  # pyright: ignore
+    world_bg = scene.world.node_tree.nodes["Background"]  # pyright: ignore
     world_bg.inputs["Color"].default_value = (0, 0, 0, 1)  # pyright: ignore
 
     # Set framerate
-    set_framerate(framerate)
+    set_framerate(scene, framerate)

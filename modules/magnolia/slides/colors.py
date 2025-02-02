@@ -30,7 +30,33 @@ def color_material(
     name = name or f"MgColorMat_{red}_{green}_{blue}"
     return get_or_create_emission_material(
         name,
-        (red / 255, green / 255, blue / 255, 1),
+        srgb_to_linear_rgb(color),
         shadow="NONE",
         opacity_control=opacity_controls,
+    )
+
+
+def srgb_to_linear_rgb(color: Color) -> tuple[float, float, float, float]:
+    """
+    Blender interprets hex colors in sRGB color space, but Blender uses
+    a linear RGB color space. To get the color to appear correctly, we need to
+    convert sRGB colors to linear RGB color space.
+
+    Logic adapted from: https://blender.stackexchange.com/a/158902
+    """
+
+    def convert_channel(c: float):
+        if c < 0:
+            return 0
+        elif c < 0.04045:
+            return c / 12.92
+        else:
+            return ((c + 0.055) / 1.055) ** 2.4
+
+    r, g, b = color
+    return (
+        convert_channel(r / 255),
+        convert_channel(g / 255),
+        convert_channel(b / 255),
+        1,
     )
