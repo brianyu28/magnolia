@@ -8,7 +8,7 @@ from ..scene.camera import create_camera
 from ..scene.collection import create_collection
 from ..scene.output import set_framerate
 from .colors import Color, color_material
-from .position import scale_size, set_slide_dimensions
+from .position import Position, resolve_position, scale_size, set_slide_dimensions
 
 
 def create_slide(
@@ -17,6 +17,7 @@ def create_slide(
     width: int = 3840,
     height: int = 2160,
     framerate: int = 30,
+    light: bool = True,
 ):
     """
     Sets up a Magnolia slide in Blender.
@@ -77,5 +78,31 @@ def create_slide(
     world_bg = scene.world.node_tree.nodes["Background"]  # pyright: ignore
     world_bg.inputs["Color"].default_value = (0, 0, 0, 1)  # pyright: ignore
 
+    if light:
+        create_slide_light(coll)
+
     # Set framerate
     set_framerate(scene, framerate)
+
+
+def create_slide_light(
+    coll: bpy.types.Collection,
+    z: float = 40,
+    power: float = 40000,
+):
+    """
+    Create a new point light in the center of the slide.
+
+    Doesn't impact emission objects in the 2D environment,
+    but will apply to other materials.
+    """
+    light_data = cast(
+        bpy.types.PointLight, bpy.data.lights.new(name="Light", type="POINT")
+    )
+    light_data.energy = power
+    light_data.specular_factor = 0.05
+    light_obj = bpy.data.objects.new(name="Light", object_data=light_data)
+    coll.objects.link(light_obj)
+    center = resolve_position((0.5, 0.5, 0))
+    light_obj.location = (center[0], center[1], z)
+    return light_obj

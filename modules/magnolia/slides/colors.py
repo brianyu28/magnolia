@@ -27,7 +27,9 @@ def color_material(
       Defaults to True.
     """
     red, green, blue = color
-    name = name or f"MgColorMat_{red}_{green}_{blue}"
+    name = (
+        name or f"MgColorMat_{red}_{green}_{blue}{'_alpha' if opacity_controls else ''}"
+    )
     return get_or_create_emission_material(
         name,
         srgb_to_linear_rgb(color),

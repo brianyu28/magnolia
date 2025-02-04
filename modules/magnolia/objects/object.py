@@ -3,8 +3,10 @@ from typing import cast, Optional, Union
 import bpy
 
 from bpy.types import Object
+from mathutils import Matrix
 
-from magnolia.scene import CollectionArg, resolve_collection
+from ..scene.collection import CollectionArg, resolve_collection
+from ..scene.context import selection
 
 
 ObjectArg = Union[str, Object]
@@ -120,3 +122,37 @@ def copy_object(
         obj.scale = resolve_scale(scale)
 
     return obj
+
+
+def apply_transform(
+    object: ObjectArg | None = None,
+    location: bool = False,
+    rotation: bool = False,
+    scale: bool = False,
+):
+    """
+    Applies a set of transformations to an object.
+    Equivalent to "Apply Scale" or "Apply Rotation" in Blender.
+
+    Adapted from: https://blender.stackexchange.com/a/283228
+    """
+    if not location and not rotation and not scale:
+        raise ValueError("At least one of location, rotation, or scale must be True")
+
+    obj = resolve_object(object or selection())
+
+    matrix = obj.matrix_local
+    mat_loc, mat_rot, mat_scale = matrix.decompose()
+    mat_trasnformation = Matrix.LocRotScale(
+        mat_loc if location else None,
+        mat_rot if rotation else None,
+        mat_scale if scale else None,
+    )
+    cast(bpy.types.Mesh, obj.data).transform(mat_trasnformation)
+
+    if location:
+        obj.location = (0, 0, 0)
+    if rotation:
+        obj.rotation_euler = (0, 0, 0)
+    if scale:
+        obj.scale = (1, 1, 1)

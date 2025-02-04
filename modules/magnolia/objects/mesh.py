@@ -72,3 +72,57 @@ def create_object_from_mesh_data(
     coll = resolve_collection(collection)
     coll.objects.link(obj)
     return obj
+
+
+def get_selected_vertex_location() -> tuple[float, float, float]:
+    """
+    Gets the location of the currently selected vertex.
+    Assumes only one vertex selected.
+
+    User must leave edit mode and go back to object mode for the selection to be
+    detected. (When interacting with edit mode, the user is working with a
+    temporary copy of the mesh.)
+    """
+    obj = selection()
+
+    if isinstance(obj.data, bpy.types.Mesh):
+        vertices = [v for v in obj.data.vertices if v.select]
+    elif isinstance(obj.data, bpy.types.Curve):
+        vertices = [v for spline in obj.data.splines for v in spline.points if v.select]
+        pass
+    else:
+        # Other object types not yet supported
+        raise ValueError("Selected object is not a mesh or curve")
+
+    if not vertices:
+        raise ValueError("No vertices selected")
+    if len(vertices) > 1:
+        raise ValueError("More than one vertex selected")
+    return tuple(vertices[0].co)  # pyright: ignore
+
+
+def set_selected_vertex_location(location: tuple[float, float, float]):
+    obj = selection()
+
+    if isinstance(obj.data, bpy.types.Mesh):
+        vertices = [v for v in obj.data.vertices if v.select]
+    elif isinstance(obj.data, bpy.types.Curve):
+        vertices = [v for spline in obj.data.splines for v in spline.points if v.select]
+        pass
+    else:
+        # Other object types not yet supported
+        raise ValueError("Selected object is not a mesh or curve")
+
+    if not vertices:
+        raise ValueError("No vertices selected")
+    if len(vertices) > 1:
+        raise ValueError("More than one vertex selected")
+
+    if location[0] is not None:
+        vertices[0].co[0] = location[0]
+
+    if location[1] is not None:
+        vertices[0].co[1] = location[1]
+
+    if location[2] is not None:
+        vertices[0].co[2] = location[2]

@@ -4,13 +4,15 @@ from bpy.types import Object
 
 import bpy
 
+from ..position import Position, resolve_position
 from ...objects.geonodes import (
     apply_geonodes,
     create_geonodes_group,
     get_geonodes_group,
 )
 from ...objects.material import MaterialArg, resolve_material
-from ...objects.object import ObjectArg, resolve_object
+from ...objects.object import ObjectArg, ObjectsArg, resolve_object, resolve_objects
+from ...scene.context import selection, selections
 
 
 def set_object_default_properties(obj: ObjectArg):
@@ -26,6 +28,40 @@ def set_object_default_properties(obj: ObjectArg):
 def set_opacity(obj: ObjectArg, opacity: float):
     obj = resolve_object(obj)
     obj["mg_opacity"] = opacity
+
+
+def set_position(object: ObjectArg, position: Position):
+    """
+    Set the position of an object.
+
+    Arguments:
+
+    - `object`: The object to move.
+    - `position`: The new position of the object.
+    """
+    obj = resolve_object(object)
+    obj.location = resolve_position(position)
+
+
+def setX(x: float, objects: ObjectsArg | None = None):
+    objs = resolve_objects(objects) if objects else selections()
+    position = resolve_position((x, 0, 0))
+    for obj in objs:
+        obj.location.x = position[0]
+
+
+def setY(y: float, objects: ObjectsArg | None = None):
+    objs = resolve_objects(objects) if objects else selections()
+    position = resolve_position((0, y, 0))
+    for obj in objs:
+        obj.location.y = position[1]
+
+
+def setZ(z: float, objects: ObjectsArg | None = None):
+    objs = resolve_objects(objects) if objects else selections()
+    position = resolve_position((0, 0, z))
+    for obj in objs:
+        obj.location.z = position[2]
 
 
 def apply_border_modifier(
@@ -181,7 +217,6 @@ def get_or_create_border_modifier_group() -> bpy.types.GeometryNodeTree:
     # Set locations
     group_input.location = (-700, 150)
     group_output.location = (1000, 0)
-    value.location = (-1000, -200)
     mesh_to_curve.location = (-400, 0)
     curve_to_mesh.location = (50, -50)
     curve_line.location = (-150, -200)
