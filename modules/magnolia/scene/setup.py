@@ -151,11 +151,11 @@ def add_scene_continuation(
         if seq.channel == 2
     ]
     max_scene_index, _ = get_max_scene_index(
-        [seq.scene for seq in video_seqs]
-    )  # pyright: ignore
+        [seq.scene for seq in video_seqs]  # pyright: ignore
+    )
 
     # Create a new scene
-    scene_name = f"{max_scene_index + 1}. {name}"
+    scene_name = f"{str(max_scene_index + 1).zfill(3)}. {name}"
     scene = create_scene(scene_name, setup_function=setup_function)
     add_scene_audio(scene, sound_path, start_frame=next_frame)
     return scene

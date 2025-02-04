@@ -24,6 +24,7 @@ from .animation.util import *
 from .animation.visibility import *
 
 from .objects import *
+from .objects.align import *
 from .objects.constraint import *
 from .objects.geonodes import *
 from .objects.location import *

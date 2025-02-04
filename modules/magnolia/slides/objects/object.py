@@ -28,6 +28,31 @@ def set_opacity(obj: ObjectArg, opacity: float):
     obj["mg_opacity"] = opacity
 
 
+def apply_border_modifier(
+    obj: ObjectArg,
+    width: float = 0.5,
+    material: MaterialArg | None = None,
+) -> bpy.types.NodesModifier:
+    """
+    Adds a Border modifier to an object.
+
+    Arguments:
+
+    - `obj`: The object to which to add the modifier.
+
+    Optional arguments:
+
+    - `width`: The width of the border, defaults to 0.5.
+    - `material`: The material to use for the border.
+    """
+    obj = resolve_object(obj)
+    result = apply_geonodes(obj, "Border", get_or_create_border_modifier_group())
+    result["Socket_1"] = width
+    if material is not None:
+        result["Socket_2"] = resolve_material(material)
+    return result
+
+
 def get_or_create_border_modifier_group() -> bpy.types.GeometryNodeTree:
     """
     Gets or creates the Magnolia Border modifier.
@@ -89,11 +114,6 @@ def get_or_create_border_modifier_group() -> bpy.types.GeometryNodeTree:
     group_output = cast(bpy.types.NodeGroupOutput, group.nodes.new("NodeGroupOutput"))
     group_output.name = "Group Output"
     group_output.is_active_output = True
-
-    # Value of border amount
-    value = cast(bpy.types.ShaderNodeValue, group.nodes.new("ShaderNodeValue"))
-    value.name = "Value"
-    value.outputs[0].default_value = 0.7  # pyright: ignore
 
     # Mesh to Curve: take the geometry and convert it to a curve representing border
     mesh_to_curve = group.nodes.new("GeometryNodeMeshToCurve")
@@ -200,28 +220,3 @@ def get_or_create_border_modifier_group() -> bpy.types.GeometryNodeTree:
     group.links.new(group_input.outputs[2], set_material.inputs[2])
 
     return group
-
-
-def apply_border_modifier(
-    obj: ObjectArg,
-    width: float = 0.5,
-    material: MaterialArg | None = None,
-) -> bpy.types.NodesModifier:
-    """
-    Adds a Border modifier to an object.
-
-    Arguments:
-
-    - `obj`: The object to which to add the modifier.
-
-    Optional arguments:
-
-    - `width`: The width of the border, defaults to 0.5.
-    - `material`: The material to use for the border.
-    """
-    obj = resolve_object(obj)
-    result = apply_geonodes(obj, "Border", get_or_create_border_modifier_group())
-    result["Socket_1"] = width
-    if material is not None:
-        result["Socket_2"] = resolve_material(material)
-    return result

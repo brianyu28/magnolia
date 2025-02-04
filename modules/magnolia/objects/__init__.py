@@ -1,4 +1,5 @@
 __all__ = [
+    "align",
     "constraint",
     "geonodes",
     "location",
@@ -8,6 +9,7 @@ __all__ = [
     "object",
 ]
 
+from .align import *
 from .constraint import *
 from .geonodes import *
 from .location import *
