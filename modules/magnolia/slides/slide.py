@@ -62,6 +62,7 @@ def create_slide(
     # Set up camera
     camera_obj = create_camera("Camera", collection=coll)
     camera_obj.location = (slide_width / 2, slide_height / 2, 20)
+    camera_obj.hide_select = True
     camera_data = cast(bpy.types.Camera, camera_obj.data)
     camera_data.type = "ORTHO"
     # Set scale so that camera covers entire region
@@ -105,4 +106,5 @@ def create_slide_light(
     coll.objects.link(light_obj)
     center = resolve_position((0.5, 0.5, 0))
     light_obj.location = (center[0], center[1], z)
+    light_obj.hide_select = True
     return light_obj

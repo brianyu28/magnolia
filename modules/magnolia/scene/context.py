@@ -33,3 +33,10 @@ def selection() -> Object:
     if len(objects) != 1:
         raise Exception("More than one object selected")
     return objects[0]
+
+
+def reset_cursor():
+    """
+    Resets the 3D cursor to the origin.
+    """
+    bpy.context.scene.cursor.location = (0, 0, 0)
