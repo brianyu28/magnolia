@@ -38,7 +38,7 @@ def align(
 
     if use_locations:
         # Get all attribute values based on object location
-        values = [getattr(obj.location, axis) for obj in targets]
+        values = [getattr(obj.matrix_world.translation, axis) for obj in targets]
 
         # Determine which attribute value to align all objects to
         match mode:
@@ -51,7 +51,7 @@ def align(
 
         # Set all objects to the determined value
         for obj in targets:
-            setattr(obj.location, axis, value)
+            setattr(obj.matrix_world.translation, axis, value)
 
     # Align based on object bounding boxes
     else:
@@ -130,17 +130,23 @@ def alignTo(target: ObjectArg, objects: ObjectsArg, axis: Axis = "x"):
         return
 
     # Get the target object's location
-    target_location = getattr(target.location, axis)
+    target_location = getattr(target.matrix_world.translation, axis)
 
     # Get the group's average location
-    group_location = sum(getattr(obj.location, axis) for obj in group) / len(group)
+    group_location = sum(
+        getattr(obj.matrix_world.translation, axis) for obj in group
+    ) / len(group)
 
     # Calculate the difference between the target and group
     difference = target_location - group_location
 
     # Move the group to align with the target
     for obj in group:
-        setattr(obj.location, axis, getattr(obj.location, axis) + difference)
+        setattr(
+            obj.matrix_world.translation,
+            axis,
+            getattr(obj.matrix_world.translation, axis) + difference,
+        )
 
 
 def distribute(
@@ -170,17 +176,19 @@ def distribute(
 
     if use_locations:
         # Order targets by location attribute
-        targets = sorted(targets, key=lambda obj: getattr(obj.location, axis))
+        targets = sorted(
+            targets, key=lambda obj: getattr(obj.matrix_world.translation, axis)
+        )
 
         # Determine values for distributing each object
-        min_value = getattr(targets[0].location, axis)
-        interval = (getattr(targets[-1].location, axis) - min_value) / (
+        min_value = getattr(targets[0].matrix_world.translation, axis)
+        interval = (getattr(targets[-1].matrix_world.translation, axis) - min_value) / (
             len(targets) - 1
         )
 
         # Distribute objects
         for i, obj in enumerate(targets):
-            setattr(obj.location, axis, min_value + interval * i)
+            setattr(obj.matrix_world.translation, axis, min_value + interval * i)
 
     # Use distances between objects
     else:
@@ -274,7 +282,7 @@ def bounding_box(
         targets = resolve_objects(objects)
 
     if not targets:
-        return
+        return (0, 0, 0), (0, 0, 0)
 
     min_x = float(math.inf)
     min_y = float(math.inf)

@@ -73,6 +73,17 @@ def resolve_scale(arg: ScaleArg) -> tuple[float, float, float]:
     return (arg, arg, arg)
 
 
+def apply_new_scale(obj: ObjectArg | None = None, scale: ScaleArg = 1):
+    obj = resolve_object(obj or selection())
+    obj.scale = resolve_scale(scale)
+
+    # Trigger scale apply
+    obj.select_set(True)
+    bpy.ops.object.transform_apply(
+        scale=True, location=False, rotation=False, properties=False
+    )
+
+
 def copy_object(
     arg: ObjectArg,
     name: Optional[str] = None,
@@ -156,3 +167,34 @@ def apply_transform(
         obj.rotation_euler = (0, 0, 0)
     if scale:
         obj.scale = (1, 1, 1)
+
+
+def move_to_collection(
+    obj: ObjectArg, collection: CollectionArg, include_children: bool = True
+):
+    """
+    Moves an object out of its current collections to a new collection.
+
+    Arguments:
+
+    - `obj`: The object to move
+    - `collection`: The collection to move the object to
+
+    Optional arguments:
+
+    - `include_children`: Whether to move the object's children as well.
+      Defaults to `True`
+    """
+    obj = resolve_object(obj)
+    collection = resolve_collection(collection)
+
+    # Remove object from all existing collections
+    for coll in obj.users_collection:
+        coll.objects.unlink(obj)
+
+    # Add object to new collection
+    collection.objects.link(obj)
+
+    if include_children:
+        for child in obj.children:
+            move_to_collection(child, collection, include_children=True)
