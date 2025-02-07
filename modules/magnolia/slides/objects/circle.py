@@ -20,6 +20,7 @@ def create_circle(
     vertex_count: int = 64,
     anchor: Anchor = "center",
     collection: Optional[CollectionArg] = None,
+    needs_resolve_position: bool = True,
 ):
     # Get circle material
     if material is None:
@@ -34,7 +35,7 @@ def create_circle(
     obj = create_object_from_mesh_data(circle_data, name=name, collection=collection)
     set_anchor(obj, anchor)
     assign_material(obj, material)
-    obj.location = resolve_position(position)
+    obj.location = resolve_position(position) if needs_resolve_position else position
     set_object_default_properties(obj)
     return obj
 

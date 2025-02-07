@@ -50,6 +50,13 @@ def resolve_position(position: Position) -> tuple[float, float, float]:
     return (x / 100, y / 100, z * 0.02)
 
 
+def scale_length(length: float):
+    """
+    Scales a length unit from pixels to the slide proportions.
+    """
+    return length / 100
+
+
 def scale_size(width: float, height: float):
     """
     Scales size appropriately for a slide.
@@ -57,7 +64,7 @@ def scale_size(width: float, height: float):
     On a slide, each output rendered pixel takes up 1/100th of a meter of
     space in the scene.
     """
-    return (width / 100, height / 100)
+    return scale_length(width), scale_length(height)
 
 
 def set_slide_dimensions(width: int, height: int):

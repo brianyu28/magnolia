@@ -3,6 +3,7 @@ from typing import cast
 from bpy.types import Object
 
 import bpy
+import magnolia as mg
 
 from ..position import Position, resolve_position
 from ...objects.geonodes import (
@@ -28,6 +29,26 @@ def set_object_default_properties(obj: ObjectArg):
 def set_opacity(obj: ObjectArg, opacity: float):
     obj = resolve_object(obj)
     obj["mg_opacity"] = opacity
+
+
+def fade_out(
+    objs: ObjectsArg | None = None,
+    frame: int | None = None,
+    duration: int = 20,
+    include_children: bool = True,
+):
+    targets = resolve_objects(objs) if objs is not None else mg.objects.selections()
+    frame = mg.scene.current_frame() if frame is None else frame
+
+    for object in targets:
+        object["mg_opacity"] = 1.0
+        object.keyframe_insert(data_path='["mg_opacity"]', frame=frame)
+        object["mg_opacity"] = 0.0
+        object.keyframe_insert(data_path='["mg_opacity"]', frame=frame + duration)
+
+        if include_children:
+            for child in object.children:
+                fade_out(child, frame, duration, include_children=include_children)
 
 
 def set_position(object: ObjectArg, position: Position):
