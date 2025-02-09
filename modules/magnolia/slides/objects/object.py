@@ -31,24 +31,68 @@ def set_opacity(obj: ObjectArg, opacity: float):
     obj["mg_opacity"] = opacity
 
 
-def fade_out(
+def fade_in(
     objs: ObjectsArg | None = None,
     frame: int | None = None,
     duration: int = 20,
     include_children: bool = True,
+    start_opacity: float = 0.0,
+    end_opacity: float = 1.0,
 ):
     targets = resolve_objects(objs) if objs is not None else mg.objects.selections()
     frame = mg.scene.current_frame() if frame is None else frame
 
     for object in targets:
-        object["mg_opacity"] = 1.0
+        object["mg_opacity"] = start_opacity
         object.keyframe_insert(data_path='["mg_opacity"]', frame=frame)
-        object["mg_opacity"] = 0.0
+        object["mg_opacity"] = end_opacity
         object.keyframe_insert(data_path='["mg_opacity"]', frame=frame + duration)
 
         if include_children:
             for child in object.children:
-                fade_out(child, frame, duration, include_children=include_children)
+                fade_in(
+                    child,
+                    frame,
+                    duration,
+                    include_children=include_children,
+                    start_opacity=start_opacity,
+                    end_opacity=end_opacity,
+                )
+
+
+def fade_out(
+    objs: ObjectsArg | None = None,
+    frame: int | None = None,
+    duration: int = 20,
+    include_children: bool = True,
+    start_opacity: float = 1.0,
+    end_opacity: float = 0.0,
+    hide: bool = False,
+):
+    targets = resolve_objects(objs) if objs is not None else mg.objects.selections()
+    frame = mg.scene.current_frame() if frame is None else frame
+
+    for object in targets:
+        object["mg_opacity"] = start_opacity
+        object.keyframe_insert(data_path='["mg_opacity"]', frame=frame)
+        object["mg_opacity"] = end_opacity
+        object.keyframe_insert(data_path='["mg_opacity"]', frame=frame + duration)
+
+        # Whether to hide object entirely, or just make invisible.
+        if hide:
+            mg.hide_at(object, frame=frame + duration, children=include_children)
+
+        if include_children:
+            for child in object.children:
+                fade_out(
+                    child,
+                    frame,
+                    duration,
+                    include_children=include_children,
+                    start_opacity=start_opacity,
+                    end_opacity=end_opacity,
+                    hide=hide,
+                )
 
 
 def set_position(object: ObjectArg, position: Position):
@@ -68,21 +112,21 @@ def setX(x: float, objects: ObjectsArg | None = None):
     objs = resolve_objects(objects) if objects else selections()
     position = resolve_position((x, 0, 0))
     for obj in objs:
-        obj.location.x = position[0]
+        obj.matrix_world.translation.x = position[0]
 
 
 def setY(y: float, objects: ObjectsArg | None = None):
     objs = resolve_objects(objects) if objects else selections()
     position = resolve_position((0, y, 0))
     for obj in objs:
-        obj.location.y = position[1]
+        obj.matrix_world.translation.y = position[1]
 
 
 def setZ(z: float, objects: ObjectsArg | None = None):
     objs = resolve_objects(objects) if objects else selections()
     position = resolve_position((0, 0, z))
     for obj in objs:
-        obj.location.z = position[2]
+        obj.matrix_world.translation.z = position[2]
 
 
 def apply_border_modifier(

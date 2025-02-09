@@ -1,3 +1,4 @@
+import bpy
 import math
 from mathutils import Vector
 from typing import Literal
@@ -6,14 +7,14 @@ from .object import ObjectArg, ObjectsArg, resolve_object, resolve_objects
 from ..scene.context import selections
 
 Axis = Literal["x", "y", "z"]
-AlignmentMode = Literal["min", "center", "max"]
+AlignmentMode = Literal["min", "center", "max", "active"]
 
 
 def align(
     objects: ObjectsArg | None = None,
     axis: Axis = "x",
     mode: AlignmentMode = "center",
-    use_locations: bool = False,
+    loc: bool = False,
 ):
     """
     Align objects.
@@ -22,8 +23,9 @@ def align(
 
     - `objects`: The objects to align. Defaults to selected objects.
     - `axis`: The axis to align objects along. Defaults to "x".
-    - `mode`: The alignment mode. Can be "min", "center", or "max". Defaults to "center".
-    - `use_locations`: Whether to align based on object location attributes.
+    - `mode`: The alignment mode. Can be "active", "min", "center", or "max".
+       Defaults to "center". "active" means we take the position of the active object.
+    - `loc`: Whether to align based on object location attributes.
         Defaults to False, which aligns based on the object's bounding box.
     """
     validate_axis(axis)
@@ -36,7 +38,7 @@ def align(
     if not targets:
         return
 
-    if use_locations:
+    if loc:
         # Get all attribute values based on object location
         values = [getattr(obj.matrix_world.translation, axis) for obj in targets]
 
@@ -48,6 +50,11 @@ def align(
                 value = sum(values) / len(values)
             case "max":
                 value = max(values)
+            case "active":
+                active_object = bpy.context.active_object
+                if active_object is None:
+                    raise ValueError("No active object found.")
+                value = getattr(active_object.matrix_world.translation, axis)
 
         # Set all objects to the determined value
         for obj in targets:
@@ -77,6 +84,13 @@ def align(
                 values = [box[1][axis_index] for box in boxes]
                 value = max(values)
 
+            case "active":
+                active_object = bpy.context.active_object
+                if active_object is None:
+                    raise ValueError("No active object found.")
+                box = bounding_box(active_object)
+                value = (box[0][axis_index] + box[1][axis_index]) / 2
+
         # Move all objects to the determined value
         for obj in targets:
             box = bounding_box(obj)
@@ -96,25 +110,25 @@ def align(
 def alignX(
     objects: ObjectsArg | None = None,
     mode: AlignmentMode = "center",
-    use_locations: bool = False,
+    loc: bool = False,
 ):
-    align(objects=objects, axis="x", mode=mode, use_locations=use_locations)
+    align(objects=objects, axis="x", mode=mode, loc=loc)
 
 
 def alignY(
     objects: ObjectsArg | None = None,
     mode: AlignmentMode = "center",
-    use_locations: bool = False,
+    loc: bool = False,
 ):
-    align(objects=objects, axis="y", mode=mode, use_locations=use_locations)
+    align(objects=objects, axis="y", mode=mode, loc=loc)
 
 
 def alignZ(
     objects: ObjectsArg | None = None,
     mode: AlignmentMode = "center",
-    use_locations: bool = False,
+    loc: bool = False,
 ):
-    align(objects=objects, axis="z", mode=mode, use_locations=use_locations)
+    align(objects=objects, axis="z", mode=mode, loc=loc)
 
 
 def alignTo(target: ObjectArg, objects: ObjectsArg, axis: Axis = "x"):
