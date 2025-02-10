@@ -16,8 +16,8 @@ from ...objects.object import ObjectArg, ObjectsArg, resolve_object, resolve_obj
 from ...scene.context import selection, selections
 
 
-def set_object_default_properties(obj: ObjectArg):
-    obj = resolve_object(obj)
+def set_object_default_properties(obj: ObjectArg | None = None):
+    obj = resolve_object(obj) if obj is not None else mg.selection()
     # Set opacity
     obj["mg_opacity"] = 1.0
 
@@ -43,9 +43,9 @@ def fade_in(
     frame = mg.scene.current_frame() if frame is None else frame
 
     for object in targets:
-        object["mg_opacity"] = start_opacity
+        object["mg_opacity"] = float(start_opacity)
         object.keyframe_insert(data_path='["mg_opacity"]', frame=frame)
-        object["mg_opacity"] = end_opacity
+        object["mg_opacity"] = float(end_opacity)
         object.keyframe_insert(data_path='["mg_opacity"]', frame=frame + duration)
 
         if include_children:

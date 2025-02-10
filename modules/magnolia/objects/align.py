@@ -280,6 +280,7 @@ def validate_axis(axis: Axis):
 
 def bounding_box(
     objects: ObjectsArg | None = None,
+    children: bool = True,
 ) -> tuple[tuple[float, float, float], tuple[float, float, float]]:
     """
     Returns the bounding box of the selected object or objects
@@ -315,4 +316,27 @@ def bounding_box(
             max_y = max(max_y, vert.y)
             max_z = max(max_z, vert.z)
 
+        if children and target.children:
+            child_box = bounding_box(list(target.children), children=True)
+            min_x = min(min_x, child_box[0][0])
+            min_y = min(min_y, child_box[0][1])
+            min_z = min(min_z, child_box[0][2])
+            max_x = max(max_x, child_box[1][0])
+            max_y = max(max_y, child_box[1][1])
+            max_z = max(max_z, child_box[1][2])
+
     return (min_x, min_y, min_z), (max_x, max_y, max_z)
+
+
+def compute_center(
+    objects: ObjectsArg | None = None,
+) -> tuple[float, float, float]:
+    """
+    Returns the center of the bounding box of the selected object or objects.
+    """
+    box = bounding_box(objects)
+    return (
+        (box[0][0] + box[1][0]) / 2,
+        (box[0][1] + box[1][1]) / 2,
+        (box[0][2] + box[1][2]) / 2,
+    )

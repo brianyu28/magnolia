@@ -1,9 +1,11 @@
 from typing import cast, Literal
 
 import bpy
+from magnolia.objects.align import bounding_box, compute_center
 import mathutils
 
-from ..objects.object import ObjectArg, resolve_object
+from ..objects.object import ObjectArg, ObjectsArg, resolve_object, resolve_objects
+from ..scene.context import selections
 
 Anchor = Literal[
     "topleft",
@@ -47,7 +49,7 @@ def resolve_position(position: Position) -> tuple[float, float, float]:
 
     # x and y values get scaled by 100 to get correct position.
     # Each layer is 0.02 meters above the previous.
-    return (x / 100, y / 100, z * 0.02)
+    return (scale_length(x), scale_length(y), z * 0.02)
 
 
 def scale_length(length: float):
@@ -146,3 +148,29 @@ def set_anchor(object: ObjectArg, anchor: Anchor):
     translation = mathutils.Matrix.Translation((x - target[0], y - target[1], 0))
     mesh = cast(bpy.types.Mesh, object.data)
     mesh.transform(translation)
+
+
+def center_on_slide(objects: ObjectsArg | None = None, x: bool = True, y: bool = True):
+    targets = resolve_objects(objects) if objects is not None else selections()
+    box_center = compute_center(cast(list[ObjectArg], targets))
+
+    # Get slide center
+    width, height = get_slide_dimensions()
+    width, height = scale_size(width, height)
+    slide_center = (width / 2, height / 2)
+
+    # Determine difference between slide center and bounding box center
+    x_diff = slide_center[0] - box_center[0]
+    y_diff = slide_center[1] - box_center[1]
+
+    # Translate all objects
+    for object in targets:
+
+        # Don't move children
+        if object.parent in targets:
+            continue
+
+        if x:
+            object.location.x += x_diff
+        if y:
+            object.location.y += y_diff

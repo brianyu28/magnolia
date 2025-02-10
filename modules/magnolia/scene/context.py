@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Any, Callable, Union
 
 import bpy
 
@@ -16,11 +16,31 @@ def current_frame() -> int:
     return bpy.context.scene.frame_current
 
 
-def selections() -> list[Object]:
+def selections(
+    key: Callable[[Object], Any] | str | None = None,
+) -> list[Object]:
     """
     Returns a list of currently selected objects.
     """
-    return list(bpy.context.selected_objects)
+    objects = list(bpy.context.selected_objects)
+    if key is not None:
+        if isinstance(key, str):
+            if key == "x":
+                key = lambda obj: obj.location.x
+            elif key == "y":
+                key = lambda obj: obj.location.y
+            elif key == "z":
+                key = lambda obj: obj.location.z
+            elif key == "-x":
+                key = lambda obj: -obj.location.x
+            elif key == "-y":
+                key = lambda obj: -obj.location.y
+            elif key == "-z":
+                key = lambda obj: -obj.location.z
+            else:
+                raise Exception(f"Unknown key string: {key}")
+        objects.sort(key=key)
+    return objects
 
 
 def selection() -> Object:
